@@ -1,1 +1,1 @@
-# csc335-Programming-Language-Paradigms
+# csc335: Programming Language Paradigms
