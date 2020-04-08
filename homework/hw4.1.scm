@@ -43,6 +43,10 @@
 (first-elems-iter '(a b c d e f) 3)
 
 ; Excercise 4
+(define (but-last-rec lst num)
+  (cond ((= (- (my-length-rec lst) num) 0) '())
+        (else (cons (car lst) (but-last-rec (cdr lst) num)))))
+
 (define (but-last-iter lst num)
   (define (my-length x count)
     (cond ((null? x) count)
@@ -52,8 +56,22 @@
           (else (tmp-f (cdr lst) num (cons (car lst) new-lst) (+ count 1)))))
   (tmp-f lst (- (my-length lst 0) num) '() 0))
 
+(but-last-rec '(a b c d e f g h i) 3)
 (but-last-iter '(a b c d e f g h i) 3)
-  
 
 ; Excercise 5
+(define (end-rec lst num)
+  (cond ((= (- (my-length-rec lst) num) 0) lst)
+        (else (end-rec (cdr lst) num))))
 
+(define (end-iter lst num)
+  (define (my-length x count)
+    (cond ((null? x) count)
+          (else (my-length (cdr x) (+ count 1)))))
+  (define (tmp-f lst num count)
+    (cond ((= count num) lst)
+          (else (tmp-f (cdr lst) num (+ count 1)))))
+  (tmp-f lst (- (my-length lst 0) num) 0))
+
+(end-rec '(a b c d e f g h i) 3)
+(end-iter '(a b c d e f g h i) 3)
