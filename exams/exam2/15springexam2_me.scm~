@@ -1,0 +1,294 @@
+; CSc 335
+; Spring 2015
+
+; April 14
+
+; Second 1.25 Hour Exam
+
+; Professor Troeger
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; TYPE YOUR NAME HERE: Lukas Rascius
+
+; TYPE YOUR FULL EMAIL ADDRESS HERE: lrascius@gmail.com
+; (I will email your graded paper to this address)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;; Scoring Template - Do NOT Erase!
+
+;;;; Problem 1 - code (max 10 points)  10
+;;;; Problem 1 - proof (max 10 points)  9
+
+;;;; Problem 2 - code (max 10 points)  10
+;;;; Problem 2 - proof (max 10 points) 10
+
+;;;; Problem 3a - code (max 10 points)  8
+;;;; Problem 3b - code (max 10 points)  8
+
+;;;; Problem 4 - code (max 20 points)   na
+;;;; Problem 4 - proof (max 20 points)  na
+
+
+;;;; Total  55
+;;;; Letter Grade  C
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; You have full access to drracket for this exam. All problems are to be solved using the subset of the pretty
+; big scheme implementation provided by drracket and discussed so far in the context of lectures and homework.
+; That is, all functions are to given in pure functional scheme. 
+
+; Collaboration of any kind is not permitted: you are to work alone; email and internet access have been disabled.
+
+; Smart phones are to be switched off and placed on the desk in front of you.  They are not to leave the room.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; YOU SHOULD INSERT YOUR ANSWERS INTO THE EXAM DIRECTLY FOLLOWING EACH QUESTION.
+
+; BE SURE TO SAVE YOUR WORK FREQUENTLY.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+; Here are the examination problems.
+
+
+
+; Problem 1  (20 points)
+
+; Background: Let us say that one list l1 of numbers is smaller than another list l2 of numbers
+; if the largest element of l1 is less than the largest element of l2.  Thus '(1 12 15) is smaller than '(17)
+
+; The Problem: Design and prove a predicate list-less-than? which implements this relation.  You should use an iterative
+; auxilliary procedure list-max which inputs a list of numbers and which returns the largest element of that
+; list.
+
+; Give a proof of your iterative procedure list-max, and make use of this to show that your predicate
+; list-less-than? is correct. 
+
+
+(define (list-less-than? l1 l2)
+  (define (list-max l1 current_max)
+    (cond ((null? l1) current_max)
+          ((> (car l1) current_max)  
+          (list-max (cdr l1) (car l1)))
+          (else (list-max (cdr l1) current_max))))
+  (< (list-max l1 (car l1)) (list-max l2 (car l2))))
+
+(list-less-than? '(1) '(2 4))
+
+; Precondition: l1 and l2 are two list of atoms with atleast one element
+; Postcondition: The function returns true if the largest element of l1 is less than the largest element of l2
+
+; Invariant: current_max is the current maximum element of the list
+; 
+
+; Beggining: If l1 has one element then we can return that element because it will be the maximum of the list and so we just return (car lst)
+; Induction: Assume that the call (list-max l1 (car l1)) works for a list of n elements. For n+1 elements, if the (> (car l1) current_max)
+; we can simply return (list-max (cdr l1) (car l1)) which is the updated value with (car l1) being the new current_max and so our invariant is correct,
+; because current_max is the largest of the processed elements. Else our function will return (list-max (cdr l1) current_max) which will 
+; leave the same max and process the rest of the list. Notice that our recurisve calls are all on lists smaller than n+1 and so they are correct
+; by the induction hypothesis
+; Termination: Upon termination, our function will return current_max when the list is empty and we have processed all the elements of the list
+
+; Our function will eventually terminate because the recursive calls make a call to the cdr of the lst and so we will eventually reach the empty list
+
+
+
+;;;; the induction should be on the number of times list-max is called, rather than on the number of elements in the list.
+
+;;;; alternately, just use the invariant proof template we have been using in class
+
+
+
+
+
+; Problem 2 (20 points)
+
+; Background: Let p? be an order predicate, and suppose seq is a list of elements which is
+; ordered with respect to p?.  That is, if i and j are legal indices for seq, then i < j implies that
+
+;     (p? (list-ref seq i) (list-ref seq j))
+
+; is true.  For example, if p? is the usual less-than relation on integers, then the list (1 2 3 5 6)
+; is ordered with respect to p?.
+
+; The Problem: Design and certify a recursive procedure insert which inputs an element e,
+; a sequence seq ordered by p? as we have just described, and the predicate p?, and which returns
+; the list consisting of e and the elements of seq, all in p? order.  That is, the procedure should
+; insert the element e into its p?-appropriate position in seq.  For example, if e were 4, then for p? = <
+; and the list shown above, the returned list is just (1 2 3 4 5 6):  that is,
+;
+;                          (insert 4 '(1 2 3 5 6) <) = '(1 2 3 4 5 6)
+
+
+(define (insert p? lst num)
+  (cond ((null? lst) (cons num '()))
+        (else 
+         (cond ((p? num (car lst)) (cons num lst))
+               (else (cons (car lst) (insert p? (cdr lst) num)))))))
+
+(insert > '(8 7 5 4 3) 6)
+(insert < '(1 2 3 5 6) 4 )
+(insert > '(8) 6)
+(insert < '(8) 9)
+(insert < '() 6)
+                             
+; Precondition: p? is a predicate, lst is a list of numbers ordered by p? and num is the number you want to insert
+; Postcondition: The function inserts num into its p?-appropriate position in the sequence 
+
+; Proof by indution on the length of the list
+
+; Base Case: If the list has no elements, then we can simply insert the number
+; Induction Hypothesis: Assume that the recursive call works for a list of length n
+; Induction Step: When we have a list of n+1, if our function detects that (p? num (car lst))
+; then our function will return (cons num lst) which is correct because we want to insert the new value and 
+; add the end of the list. Otherwise, out function will (cons (car lst) (insert p? (cdr lst) num). Since from
+; our induction hypthesis (insert p? (cdr lst) num) is correct because it is a list of length n, then surely
+; adding the car of the list will add the element to the from of the list because the predicate was not yet satisfied
+
+; Our function will eventually terminate because the recursive calls make a call to the cdr of the lst and so we will eventually reach the empty list
+
+
+;;;; you've nailed it
+
+
+
+
+; Problem 3a (10 points)
+
+; Using the insert procedure developed in 2a, write a sorting procedure insertion-sort which inputs
+; a list l of elements and an order predicate appropriate for these elements, and which returns a list
+                             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+; l' with the same elements as l, but in sorted order.  Thus if l = '(d b a c) and the order predicate
+; specifies a < b < c < d, the returned list is '(a b c d).  (A proof is not requested.)
+
+(define (insertion-sort lst)
+  (define (iter lst result)
+  (cond ((null? lst) result)
+         (else (iter (cdr lst) (insert < result (car lst))))
+         ))
+  (iter (cdr lst) (list (car lst))))
+
+;;;; good except for hard-wiring the comparison predicate
+
+
+(insertion-sort '(2 4 4 6 7 2 1))
+
+; Problem 3b (10 points)
+
+; Finally, using the functions you have developed in the previous problems, write a procedure that inputs
+; a list of lists of numbers and which returns the list with the largest number in it.  Calling this
+; function list-with-largest-number,  (list-with-largest-number '((16 43 7) (25 98) (57 2 89 14))) should
+; return '(25 98).  (A proof is not requested)
+  (define (list-max l1 current_max)
+    (cond ((null? l1) current_max)
+          ((> (car l1) current_max)  
+          (list-max (cdr l1) (car l1)))
+          (else (list-max (cdr l1) current_max))))
+ 
+  (define (lastelem? lst)
+    (cond ((eq? (cdr lst) '()) (car lst))
+          (else (lastelem? (cdr lst)))))
+  
+;  (define (largest-list lst)
+;    (map ))
+  
+  (lastelem? '(1 3 4))
+  
+
+(define (count-max-position lst)
+  (define (iter count lst largest)
+    (cond ((null? lst) largest) 
+      ((> (car lst) largest) (iter (+ count 1) (cdr lst) (car lst)))
+          (else (iter count (cdr lst) largest))))
+  (iter 0 lst (car lst))
+  )
+
+(count-max-position '(1 2 3))
+
+
+;(define (list-with-largest-number lst)
+;  (list-ref  (foldr append '() (map append (list (map insertion-sort lst)))) 
+;             (count-max-position (foldr append '() (map append (list (map insertion-sort lst)))))))
+
+;(list-with-largest-number '((16 43 7) (25 98) (57 2 89 14)))
+
+
+
+;;;; simpler:  sort the list of lists, using insertion sort and the predicate developed above; then extract the last
+;;;; element
+
+
+
+
+
+
+
+
+
+
+
+
+; Problem 4 (40 points)
+
+; In this problem, you are asked to implement and prove correct a procedure bfs for breadth-first
+; search of a binary tree.
+
+; Binary trees have nodes and branches, and leaves.  Leaves can be represented as atoms; binary trees
+; which are not just leaves can be represented as lists of the form
+
+;             (node left-subtree right-subtree)
+
+; For example, (13 (5 6 1) (45 7 18)) is a binary tree with root node 13, and left and right subtrees.
+; (5 6 1) is a binary tree with root node 5, left subtree 6 (which is a leaf), and right subtree 1 (also a leaf).
+
+; Given a binary tree t, and an element e, your bfs program is to return #t if e occurs as a node or leaf element of t,
+; and #f otherwise.  Thus, referring to the example just given as sample-tree, (bfs sample-tree 0) is #f, while
+; (bfs sample-tree 13), (bfs sample-tree 5) and (bfs sample-tree 18) are all #t. 
+
+; You may assume that nodes and leaves are atoms.
+
+; You will want to write selectors appropriate for this data structure and then to make use of these in your
+; breadth-first search program. A constructor, say make-tree, could also be put to good use in setting up test data
+; for your function.   
+
+
+; Recall from your algorithms course that breadth-first search proceeds by maintaining a list of 
+; the subtrees that must be returned to.  When a node is reached, it is examined - if it is the
+; element searched for, return #t; otherwise, add its subtrees to the end of this
+; search list, and then continue the search.  If the search list is empty, the search has failed.
+; I leave it to you to work out what to do when a leaf is reached.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

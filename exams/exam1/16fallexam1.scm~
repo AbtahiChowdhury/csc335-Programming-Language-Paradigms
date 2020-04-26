@@ -1,0 +1,235 @@
+; CSc 335
+; Fall 2016
+
+; September 29
+
+; First 1.25 Hour Exam
+
+; Professor Troeger
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; TYPE YOUR NAME HERE:
+
+; TYPE YOUR FULL EMAIL ADDRESS HERE:
+; (I will email your graded paper to this address)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;; Scoring Template - Do NOT Erase!
+
+;;;; Problem 1 - code (max 15 points)
+
+;;;; Problem 2a - code (max 15 points)
+;;;; Problem 2b - proof (max 20 points)
+
+;;;; Problem 3 - code (max 15 points)
+;;;; Problem 3 - proof (max 20 points)
+
+;;;; Problem 4 - code (max 15 points)
+
+
+
+;;;; Total
+;;;; Letter Grade
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; You have full access to drracket for this exam. All problems are to be solved using the R5RS
+; implementation provided by drracket and only those language features discussed so far in the
+; context of lectures and homework.
+
+; Collaboration of any kind is not permitted: you are to work alone; email and internet access have been disabled.
+
+; Smart phones are to be switched off and placed on the desk in front of you.  They are not to leave the room.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; YOU SHOULD INSERT YOUR ANSWERS INTO THE EXAM DIRECTLY FOLLOWING EACH QUESTION.
+
+; BE SURE TO SAVE YOUR WORK FREQUENTLY.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+; Here are the examination problems.  
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+; 1.  (15 points) Recursive patterns lurk everywhere.  Use the equation (n + 1)^2 = n^2 + 2n + 1 to develop a
+; recursive program for computing n^2.  Explain the connection between the equation and your program. 
+
+; The strategy is to compute (n + 1)^2 by first computing n^2 (and then adding 2n + 1 to it).
+; Or, analogously: compute n^2 by first computing (n - 1)^2 and then adding 2(n - 1) + 1 = 2n - 1.
+
+(define (square n)
+  (if (= n 0)
+      0
+      (+ (* 2 n) -1 (square (- n 1)))))
+
+; The precondition is that n is a nonnegative integer. We could easily extend it so that n can be negative:
+; for instance, given that n^2 = (-n)^2, if (< n 0), we could call (square (- n)). For example,
+
+(define (square2 n)
+  (cond ((= n 0) 0)
+        ((< n 0) (square2 (- n)))
+        ((+ (* 2 n) -1 (square2 (- n 1))))))
+
+; The postcondition is that the value of n^2 is returned.
+; 
+; First re-write the equation (n + 1)^2 = n^2 + 2n + 1 as n^2 = (n - 1)^2 + 2(n - 1) + 1.
+; By this equation we know that, if the program correctly computes (n - 1)^2, we can add 2(n - 1) + 1 = 2n - 1 to it
+; and the result will be equal to n^2.
+;
+; Clearly, square as well as square2 returns the right answer in the base case; n = 0, so n^2 = 0.
+; 
+; Because the program returns the right answer in the base case (n = 0) and the correctness of computing (n - 1)^2
+; implies the correctness of computing n^2 (that is the inductive case, the case when n > 0), the program must return
+; the right answer for all integers n >= 0. (For square2, this would be true for all negative integers as well.)
+;  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+; 2a.  (15 points) Write a properly recursive Scheme function num-digits-satisfying which inputs an integer n and a boolean function
+; test? of one argument and which returns the number of digits in n for which (test? n) is true.  Thus the call
+; (num-digits-satisfying 152535 (lambda (n) (= n 5))) should return 3, and (num-digits-satisfying -152535 odd?) would 
+; return 5.
+
+; Idea:
+; 1. Obtain the ones digit from the number.
+; 2. Process the ones digit (add 1 to the count if it passes the given test or 0 if it doesn't).
+; 3. Call num-digits-satisfying on the same number but with the ones digit removed.
+; 4. Repeat steps 1-3 until n is a one-digit number.
+; 5. Repeat step 2 one more time.
+
+(define (num-digits-satisfying n test?)
+  (let ((ones-digit (remainder n 10)))
+    (define boolean (if (test? ones-digit)
+                        1
+                        0))
+    (cond ((and (< n 10) (> n -10)) boolean)
+          (else (+ boolean
+                   (num-digits-satisfying (quotient n 10) test?))))))
+
+(num-digits-satisfying 152535 (lambda (n) (= n 5)))
+(num-digits-satisfying -152535 odd?)
+
+;  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+; 2b.  (20 points) Give a complete proof showing that your function num-digits-satisfying is correct.
+
+; Precondition: n is an integer and test? is a boolean function of one numerical argument
+; Postcondition: the number of digits in n for which test? is true is returned
+; 
+; In the base case, n is a one-digit number (between -9 and 9). Thus, we can just return boolean, which is
+; defined as 1 if the ones-digit of n passed the test or 0 if it didn't.
+; The count of the digits in n that passed the test is precisely that, since there's only
+; one digit.
+
+; In the inductive case, n has more than one digit. In this case we can process the ones-digit,
+; remove the ones-digit, and then process the rest of the number, which is the same number but with the ones digit removed
+; (done by a recursive call).
+ 
+; We want to show that if processing the rest of the number (i.e., (quotient n 10), the same as (truncate (/ n 10)) returns
+; the correct result, then the result of adding boolean to it (adding 1 if the ones-digit satisfies our test and 0 if it doesn't)
+; returns the correct result for the whole number, in the outer call.
+; Clearly, if calling the function on the same number with the ones digit is removed returns the actual number of digits
+; for which test? is true, adding 1 to that number if test? is true for the ones digit or 0 if it is not
+; gives us the correct number. It makes no contribution to the total count if it does not pass the test, whereas it
+; gets included to the total count if it does pass it.
+;
+; Because n is an integer and every call removes the ones digit from n, we know the number of digits left to process
+; will eventually be reduced to 1 and we will enter the base case (whether n is positive or negative) and the
+; program will terminate.
+; ----------------------------------------------------------------------------------------------------------
+
+; 3a.  (15 points) Now rewrite num-digits-satisfying so that it generates an iterative process.
+
+; We follow the same process of processing each digit one at a time and adding 1 to the "count" if test? is true
+; and 0 if it isn't. In this case, we keep count with a state variable which is initially 0.
+
+(define (num-digits-satisfying n test?)
+  (define (iter a count)
+    (let ((ones-digit (remainder a 10)))
+      (define ones-digit-test (if (test? ones-digit)
+                                  1
+                                  0))
+    (cond ((and (< a 10) (> a -10)) (+ ones-digit-test count))
+          (else (iter (quotient a 10) (+ ones-digit-test count))))))
+  (iter n 0))
+
+(num-digits-satisfying 152535 (lambda (n) (= n 5)))
+(num-digits-satisfying -152535 odd?)
+
+;  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+; 3b.  (20 points) Give a complete (invariant-based) proof showing that your rewritten num-digits-satisfying is correct. 
+
+; First note that (remainder a 10) returns the ones digit of a, and (quotient a 10) returns a with the ones digit removed.
+
+; The invariant is that count is equal to the number of digits in the processed part of the number, which is the
+; complement of the processed part, a.
+;
+; On the initial call, a = n, so the unprocessed part is the entire number <=> the processed part is empty.
+; Thus the count is zero; no digits have been tested yet.
+
+; On each call, we "process" the ones-digit: if it passes the test then we add 1 to the count; otherwise we add nothing.
+
+; If in the previous call count was equal to the actual number of digits previous to this ones-digit that passed the test,
+; the processing of the current ones-digit leads to the correct count again: it gets included (add 1) or it doesn't (add 0).
+
+; Does the invariant imply correctness of the program on termination? The program terminates, that is, it stops
+; iterating and updating count, when ((and (< a 10) (> a -10)), i.e., when a is a one-digit number.
+; a only has one digit left to process <=> the unprocessed part has one fewer digit than our original number n.
+; Because we return (+ ones-digit-test count), by the invariant, the processing of the ones-digit will lead
+; us to the correct answer, as the unprocessed part will be reduced to nothing: the processed part will become
+; identical to our original number n.
+
+;  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+; 4. (15 points) Write a function make-repeated which inputs a function f of one argument and which returns a function
+; g of two arguments b and n so that ((make-repeated f) b n) applies f n times to b.  Demonstrate your function by 
+; showing how to use it to apply the function square 8 times to 2.
+
+; recursive version
+
+(define (compose f g)
+  (lambda (x) (f (g x)))) ; the function of x that applies f to g(x)
+
+(define (make-repeated f)
+  (lambda (b n)
+    (cond ((= n 1) (f b))
+          (else (f ((make-repeated f) b (- n 1)))))))
+
+; iterative version
+
+(define (make-repeated-iter f)
+  (lambda (b n)
+    (define (iter count result-so-far)
+      (if (= count n)
+          result-so-far
+          (iter (+ count 1) (f result-so-far))))
+    (iter 1 (f b))))
+
+; The invariant is that result-so-far is the result of the countth application of f on b.
+
+; Initially the arguments to iter are
+; count = 1,
+; result-so-far = (f b).
+; Obviously the invariant holds here: f(b) is the value of one application on b.
+
+; If the invariant holds on the kth iteration (so result-so-far is the countth application on b),
+; then it also will hold on the (k+1)st iteration: count has been increased by 1, and so has the
+; number of applications with the assignment
+; result-so-far <- (f result-so-far).
+
+; The invariant implies the program is correct on termination as it terminates when count = n,
+; so on the last call we have applied f n times to b and return the value of that result.
+
+(define (square x) (* x x))
+((make-repeated square) 2 8) ; i.e., (((((((2^2)^2)^2)^2)^2)^2)^2)^2
+((make-repeated-iter square) 2 8)
+

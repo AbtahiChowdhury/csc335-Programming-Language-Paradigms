@@ -1,0 +1,227 @@
+; CSc 335
+; Fall 2015
+
+; October 13
+
+; First 1.25 Hour Exam
+
+; Professor Troeger
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; TYPE YOUR NAME HERE:
+
+; TYPE YOUR FULL EMAIL ADDRESS HERE:
+; (I will email your graded paper to this address)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;; Scoring Template - Do NOT Erase!
+
+;;;; Problem 1 - code (out of 15 points)
+;;;; Problem 1 - proof (out of 10 points)
+
+;;;; Problem 2 - code (out of 10 points)
+;;;; Problem 2 - proof (out of 15 points)
+
+;;;; Problem 3 - code (out of 20 points)
+;;;; Problem 3 - proof (out of 20 points)
+
+;;;; Problem 4 (out of 10 points)
+
+;;;; Total
+;;;; Letter Grade
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; You have full access to drracket for this exam. All problems are to be solved using R5RS within drracket,
+; and using only language features discussed so far in the context of the homework: no lists, no strings, no assignment.  
+
+; Collaboration of any kind is not permitted: you are to work alone; email and internet access have been disabled.
+
+; Smart phones are to be switched off and placed on the desk in front of you.  They are not to leave the room.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; YOU SHOULD INSERT YOUR ANSWERS INTO THE EXAM DIRECTLY FOLLOWING EACH QUESTION.
+
+; BE SURE TO SAVE YOUR WORK FREQUENTLY.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Here are the examination problems.  
+
+
+; Problem 1 (25 points) Write a scheme function expo of one integer argument b which returns a function of
+; one argument e so that, for e a non-negative integer, ((expo b) e) returns b raised to the eth power.
+; The function returned by (expo b) should work by repeated multiplication, and should be be properly
+; recursive; give a proof that this function is correct.  Don't forget the termination argument.
+
+(define (expo b)
+  (define (expo-recur e)
+    (if (= e 0)
+        1
+        (* b (expo-recur (- e 1)))))
+  expo-recur)
+
+; Precondition: b is an integer, e is a nonnegative integer
+; Postcondition: b^e is returned by ((expo b) e)
+
+; (expo b) is defined as expo-recur. Thus, ((expo b) e) is the same as (expo-recur e).
+
+; The base case occurs when (= e 0), in which case 1 is returned. Mathematically, b^0 = 1 for any b, so this is correct.
+; The inductive case occurs if the base case does not (when e is greater than 0, since e cannot be negative).
+; In that case, the return value of (expo-recur e) is b multiplied by (expo-recur (- e 1)), just as
+; b^e = b*b^(e-1).
+
+; That is, if b^(e-1) is correctly returned by (expo-recur (- e 1)), we know that b^e is correctly
+; returned by (expo-recur e) in the inductive case (simply multiply the first result by b one time).
+
+; Given that e is a nonnegative integer on any given call and (- e 1) is the replacing argument
+; on the next call to expo-recur, e will eventually equal zero and the recursive process will terminate.
+; ---------------------------------------------------------------------------------------------------------------------------
+
+
+; Problem 2 (25 points) Design and certify an iterative scheme procedure count-digits which inputs a single
+; non-negative integer n and which returns the number of digits in n.  Your proof should be based on an
+; invariant.  Again, do not forget the termination argument.
+
+(define (count-digits n)
+  (define (count-iter a result-so-far)
+    (if (< a 10)
+        (+ 1 result-so-far)
+        (count-iter (quotient a 10) (+ 1 result-so-far))))
+  (count-iter n 0))
+
+; Precondition: n is a nonnegative integer
+; Postcondition: the number of digits in n is returned
+
+; Let n_x denote the number of digits in a number x.
+; The invariant is that n_n = n_a + result-so-far.
+; The first call to our iterative procedure is (count-iter n 0). The number of digits in n is certainly the number
+; of digits in n plus 0; thus, we know the invariant holds on the first call.
+
+; If the invariant holds on the kth call, does it hold on the (k+1)st call as well?
+; Suppose on the kth call the arguments are a and result-so-far. Thus, if the invariant holds, n_n = n_a + result-so-far.
+; On the next call, the arguments become (quotient a 10) and (+ 1 result-so-far).
+; That is, the the number a is the same number as before but it has lost its ones digit.
+
+; (This is not true if a was a one-digit number, as (quotient a 10) in that case
+; would evaluate to 0, and 0 is still a one-digit number; however, we are concerned here
+; about the inductive case, not the base case, which occurs just when (< a 10).)
+
+; Further, the number result-so-far is the same number as before but it has been incremented by 1.
+; Thus, if n_n = n_a + result-so-far holds on the current call, it must also hold on the next call,
+; since n_n = (n_a - 1) + (result-so-far + 1) = n_a + result-so-far.
+
+; By our invariant, is the correct answer returned when the program terminates? Does the program terminate?
+; The program terminates when a is a one-digit number, in which case (+ 1 result-so-far) is returned.
+; In that case the invariant would say that n_n = 1 + result-so-far. (We showed that the invariant
+; holds by induction on every call.) So our return value is n_n, as desired.
+
+; The program terminates because a loses its ones digit on every call and is nonnegative; thus, it will eventually become
+; a one-digit number between 0 and 10, meeting the stopping condition (< a 10).
+; ---------------------------------------------------------------------------------------------------------------------------
+
+; Problem 3 (40 points)  Write and certify a scheme function scramble with arguments n and f, where n is a
+; positive integer and f is a function from the set {0,1,2,...,9} of digits to the set of non-negative
+; integers, and which returns the number formed from n by replacing each digit j by the digits (in order)
+; of the value (f j).
+
+; Thus if f is the function which squares each digit, (scramble 403612 f) returns 16093614
+
+; Your function can be either recursive or iterative, as you see fit: be sure to say which, and to give
+; a proof (induction or invariant based) which matches your choice. Again, don't forget the termination argument.
+
+
+; (Hint: work from the right, and perhaps make use of your function count-digits. Your proof, should you use
+; count-digits, will need to show that the count-digits precondition holds each time it is called; your proof should also
+; indicate how the post-condition of count-digits contributes to the main argument. )
+
+; ---------------
+
+(define (scramble f n)
+    (define (scramble-iter a exp result-so-far)
+      (let ((term (if (zero? (remainder a 10))
+                      0
+                      (* (f (remainder a 10)) ((expo 10) exp)))))
+        (cond ((< a 10) (+ term result-so-far))
+              (else (scramble-iter (quotient a 10)
+                                   (+ (count-digits (f (remainder a 10))) exp)
+                                   (+ term result-so-far))))))
+  (scramble-iter n 0 0))
+
+(scramble (lambda (x) (* x x)) 403612)
+
+; 403612   = 2(10^0) + 1(10^1) + 6(10^2) + 3(10^3) + 0(10^4) + 4(10^5)
+; 16093614 = 4(10^0) + 1(10^1) +36(10^2) + 9(10^4) + 0(10^5) +16(10^6)
+; The resulting value is the same sum as before but with the coefficients that are the digits j
+; replaced with f(j) and with the 'next' exponent replaced with the previous exponent plus
+; the number of digits in the previous f(j). For example, 36 has two-digits and is multiplied by
+; 10^2. The next number, 9, is multiplied by 10^(2+2) = 10^4.
+
+; The strategy is to continually
+; 1. extract the ones digit from the number,
+; 2. apply the function f to it,
+; 3. multiply the result by 10^(exp), and
+; 4. add the result to result-so-far,
+; on each iteration.
+
+; Precondition: n is a positive integer and f is a function that maps a 0-9 digit to a nonnegative integer
+; Postcondition: return the number that is the number n with each digit j replaced by f(j)
+
+; The invariant is that result-so-far is the correct postcondition result for the number so far processed.
+; 1. On each iteration we extract and process the ones digit before adding the result to result-so-far.
+; 2. (quotient a 10) returns the left part of the number, the unprocessed part.
+; The invariant is that result-so-far is the number such that each digit j in the processed part of the
+; number is replaced by f(j).
+
+; Suppose abc|d|efg is our number, and that the vertical bars surrounding 'd' denote that d is 
+; the ones digit of our argument a, which is "abcd". The already processed part is "efg". 
+; The invariant is that result-so-far is the correct result that the scramble function would return
+; on an input exemplified by "efg", the processed portion of our number n.
+
+; First we ought to show that our argument exp always represents the count of the digits in result-so-far.
+; ... show this ... or modify the code so that exp is simply replaced by (count-digits result-so-far) ...
+
+; Each call transforms the previous value of result-so-far in the following way:
+; 1. It retains the digits of result-so-far in their original ordering and placement.
+; 2. For the current digit being processed j, it affixes f(j) to the left of those retained digits.
+
+; The next term to be added has the form f(j)00..0, where the number of zeroes is the number of digits in result-so-far.
+; Observe that (* (f (remainder a 10)) ((expo 10) exp)) applies f to the ones digit (remainder a 10) to obtain f(j) and
+; multiplies the result by 10^(exp) which gives you (exp) zeroes.
+; The result of adding f(j)00..0 + result-so-far is thus f(j)(result-so-far).
+
+; ...
+
+; ---------------
+
+; Problem 4 (10 points) The function
+
+(define add-1
+  (lambda (y) (+ y 1)))
+
+; can be generalized
+
+(define add-x
+  (lambda (x)
+    (lambda (y)
+      (+ x y))))
+
+; so that add-1 can be realized as (add-x 1).
+
+; In this problem, you are asked to go a step further, and generalize this pattern to allow its use with any function
+; of two arguments (not just +).  Name the new function curry-2, and show how to use it to realize add-x.  Show
+; further how to use it to define a function expo-b, which inputs a non-negative integer e and outputs b raised to the eth
+; power (you can use the scheme primitive, expt).
+
+; No proofs are required for problem 4.
+
+(define curry-2
+  (lambda (op) ; op must be a function of two arguments, x and y
+    (lambda (x y)
+      (op x y))))
+
+; add-x could be realized as (curry-2 +)
