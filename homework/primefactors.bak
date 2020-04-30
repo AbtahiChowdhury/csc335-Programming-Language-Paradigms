@@ -26,7 +26,7 @@
 ;   complete proofs of your major functions must be included.
 
 
-;IH: assuming all previous calls are correct, prime-factors is called on a number smaller then n
+;IH: assuming all previous calls are correct, prime-factors is called on a smaller value of n
 ;Basis: n is 1
 ;IS: by the induction assumption, we can see that we have a prime factor of n, which is i, and a
 ;    list of the rest of the prime factors of n which are greater than i. so we would then need
